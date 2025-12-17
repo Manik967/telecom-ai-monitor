@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7D Live Network Anomaly Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap');
+        body { 
+            font-family: 'Urbanist', sans-serif; 
+            background-color: #0b0f1a;
+            color: #e2e8f0;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 140px;
+            width: 100%;
+        }
+        .neon-text {
+            text-shadow: 0 0 10px rgba(173, 255, 47, 0.5);
+        }
+        .signature-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .signature-btn:active {
+            transform: scale(0.95);
+        }
+        .signature-btn.active {
+            background-color: #adff2f;
+            color: #000;
+            border-color: #adff2f;
+            box-shadow: 0 0 15px rgba(173, 255, 47, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(173, 255, 47, 0.2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl font-extrabold tracking-tight text-white neon-text">
+                    <span class="text-[#adff2f]">LIVE</span> 7x7 NETWORK MONITOR
+                </h1>
+                <p class="text-slate-400 font-medium">Multivariate Anomaly Detection Stream</p>
+            </div>
+            
+            <div class="flex items-center gap-6 glass-card px-6 py-3 rounded-2xl">
+                <div class="flex items-center gap-2">
+                    <div class="h-3 w-3 rounded-full bg-[#adff2f] animate-pulse"></div>
+                    <span class="text-sm font-bold uppercase tracking-widest text-[#adff2f]">Stream Active</span>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div>
+                    <span class="text-xs text-slate-500 font-bold block uppercase">Inference Engine</span>
+                    <span class="font-mono text-sm text-white">Isolation Forest</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Simulation Controls -->
+                <div class="glass-card p-6 rounded-3xl">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-flask text-[#adff2f]"></i> Signature Injection
+                    </h2>
+                    <div class="space-y-2 h-[450px] overflow-y-auto pr-2 custom-scrollbar" id="signature-controls">
+                        <!-- Buttons added via JS -->
+                    </div>
+                </div>
+
+                <!-- Alert Feed -->
+                <div class="glass-card p-6 rounded-3xl">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bell text-rose-500"></i> Incident Log
+                    </h2>
+                    <div id="alert-feed" class="space-y-3 h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        <div class="text-xs text-slate-500 italic">Monitoring telemetry...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Panels -->
+            <div class="lg:col-span-3">
+                <div id="dashboard-grid" class="grid grid-cols-1 gap-4">
+                    <!-- 7 Charts injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WINDOW_SIZE = 50;
+        const UPDATE_SPEED = 800; // ms
+
+        const FEATURE_CONFIG = [
+            { id: 'Traffic_Volume', label: 'Traffic Volume', unit: 'GB/min', color: '#3b82f6', base: 110, dev: 5 },
+            { id: 'Latency_ms', label: 'Latency', unit: 'ms', color: '#f59e0b', base: 55, dev: 5 },
+            { id: 'Error_Rate', label: 'Error Rate', unit: 'Ev/min', color: '#ef4444', base: 1.2, dev: 0.3 },
+            { id: 'Jitter_ms', label: 'Jitter', unit: 'ms', color: '#a855f7', base: 2.5, dev: 0.2 },
+            { id: 'Throughput_Mbps', label: 'Throughput', unit: 'Mbps', color: '#10b981', base: 75, dev: 4 },
+            { id: 'Packet_Loss_Rate', label: 'Packet Loss', unit: '%', color: '#f43f5e', base: 0.6, dev: 0.1 },
+            { id: 'CPU_Utilization_Pct', label: 'CPU Utilization', unit: '%', color: '#06b6d4', base: 35, dev: 3 }
+        ];
+
+        const SIGNATURES = {
+            'DDoS Attack': { 
+                Traffic_Volume: 200, Latency_ms: 80, CPU_Utilization_Pct: 40, Error_Rate: 10,
+                desc: 'Flood detected: High Volume & CPU load' 
+            },
+            'Fiber Cut': { 
+                Traffic_Volume: -109, Throughput_Mbps: -74, Latency_ms: 200, Jitter_ms: 10,
+                desc: 'Critical failure: Physical link disruption' 
+            },
+            'Probe Attack': {
+                Error_Rate: 40,
+                desc: 'Security scan: Extreme error rate spikes'
+            },
+            'Hardware Bottleneck': {
+                Traffic_Volume: 100, Latency_ms: 100, Throughput_Mbps: -40, CPU_Utilization_Pct: 20,
+                desc: 'Performance: Resource congestion detected'
+            },
+            'Resource Exhaustion': {
+                Traffic_Volume: 120, CPU_Utilization_Pct: 70, Latency_ms: 50,
+                desc: 'Critical: System load at capacity'
+            },
+            'Routing Loop': {
+                Latency_ms: 200, Jitter_ms: 12, Packet_Loss_Rate: 9,
+                desc: 'Operational error: Infinite packet loop'
+            },
+            'VoIP Degradation': {
+                Latency_ms: 150, Jitter_ms: 20, Packet_Loss_Rate: 8,
+                desc: 'Quality drop: High Jitter & Media Loss'
+            }
+        };
+
+        let charts = {};
+        let activeAttack = null;
+        let attackTimer = 0;
+        let counter = 0;
+
+        function init() {
+            const grid = document.getElementById('dashboard-grid');
+            const controls = document.getElementById('signature-controls');
+
+            FEATURE_CONFIG.forEach(feat => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-4 rounded-2xl";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">${feat.label}</span>
+                        <span id="val-${feat.id}" class="font-mono text-sm font-bold text-white">--</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-${feat.id}"></canvas>
+                    </div>
+                `;
+                grid.appendChild(card);
+                setupChart(feat);
+            });
+
+            // Setup buttons
+            ['Normal Status', ...Object.keys(SIGNATURES)].forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = `signature-btn w-full text-left px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/50 text-xs font-bold hover:bg-slate-800 transition-all ${name === 'Normal Status' ? 'active' : ''}`;
+                btn.innerHTML = `<span>${name}</span>`;
+                btn.onclick = () => setAttack(name, btn);
+                controls.appendChild(btn);
+            });
+
+            startLoop();
+        }
+
+        function setupChart(feat) {
+            const ctx = document.getElementById(`chart-${feat.id}`).getContext('2d');
+            charts[feat.id] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(WINDOW_SIZE).fill(''),
+                    datasets: [{
+                        label: 'Stream',
+                        data: Array(WINDOW_SIZE).fill(feat.base),
+                        borderColor: feat.color,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: feat.color + '15'
+                    }, {
+                        label: 'Anomaly',
+                        data: Array(WINDOW_SIZE).fill(null),
+                        type: 'scatter',
+                        pointBackgroundColor: '#ef4444',
+                        pointRadius: 6,
+                        showLine: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        function setAttack(name, btn) {
+            document.querySelectorAll('.signature-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (name === 'Normal Status') {
+                activeAttack = null;
+                logAlert(`System status restored to baseline`, 'warning');
+            } else {
+                activeAttack = name;
+                attackTimer = 15;
+                logAlert(`Manual Injection: ${name} initiated`, 'warning');
+            }
+        }
+
+        function logAlert(msg, type = 'error') {
+            const feed = document.getElementById('alert-feed');
+            const alert = document.createElement('div');
+            const color = type === 'error' ? 'text-rose-400 border-rose-900/50 bg-rose-900/10' : 'text-amber-400 border-amber-900/50 bg-amber-900/10';
+            
+            alert.className = `p-3 rounded-xl border text-[10px] font-bold uppercase tracking-tight ${color} animate-pulse`;
+            alert.innerHTML = `<span class="opacity-50 text-slate-500 mr-2">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            
+            feed.prepend(alert);
+            if (feed.children.length > 15) feed.removeChild(feed.lastChild);
+        }
+
+        function startLoop() {
+            setInterval(() => {
+                counter++;
+                const isAnomaly = activeAttack != null;
+
+                FEATURE_CONFIG.forEach(feat => {
+                    const chart = charts[feat.id];
+                    let val = feat.base + (Math.random() - 0.5) * feat.dev;
+
+                    if (activeAttack && SIGNATURES[activeAttack]) {
+                        const shift = SIGNATURES[activeAttack][feat.id] || 0;
+                        val += shift;
+                        // Fiber Cut specific logic for near-zero volume
+                        if (activeAttack === 'Fiber Cut' && (feat.id === 'Traffic_Volume' || feat.id === 'Throughput_Mbps')) {
+                            val = 1 + (Math.random() * 0.8);
+                        }
+                        if (val < 0) val = 0.5 + Math.random();
+                    }
+
+                    document.getElementById(`val-${feat.id}`).innerText = val.toFixed(2);
+
+                    chart.data.datasets[0].data.push(val);
+                    chart.data.datasets[0].data.shift();
+
+                    chart.data.datasets[1].data.push(isAnomaly ? val : null);
+                    chart.data.datasets[1].data.shift();
+
+                    chart.update('none');
+                });
+
+                if (activeAttack) {
+                    attackTimer--;
+                    if (attackTimer <= 0) {
+                        const activeName = activeAttack;
+                        logAlert(`${activeName} resolved.`, 'warning');
+                        activeAttack = null;
+                        document.querySelectorAll('.signature-btn').forEach(b => {
+                            b.classList.remove('active');
+                            if(b.innerText.includes('Normal')) b.classList.add('active');
+                        });
+                    }
+                    if (counter % 3 === 0) logAlert(`Inference Result: ${activeAttack} Signature Confirmed`);
+                }
+
+            }, UPDATE_SPEED);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

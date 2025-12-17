@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7D Anomaly Detection - Comprehensive Validation Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .chart-container { height: 140px; position: relative; }
+        .nav-btn.active { background-color: #10b981; color: white; border-color: #059669; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-72 bg-slate-900 text-white p-6 flex flex-col">
+            <div class="mb-8">
+                <h1 class="text-2xl font-black tracking-tight text-emerald-400">7x7 SYSTEM</h1>
+                <p class="text-slate-400 text-xs uppercase tracking-widest font-bold">Project Validation</p>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Select Validation Case</p>
+                <nav class="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-2" id="signature-nav">
+                    <!-- Nav buttons injected by JS -->
+                </nav>
+            </div>
+
+            <div class="mt-auto pt-6 border-t border-slate-800">
+                <div class="flex items-center gap-3 text-sm text-slate-400">
+                    <i class="fa-solid fa-microchip text-emerald-500"></i>
+                    <span>Isolation Forest Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-10 max-h-screen overflow-y-auto custom-scrollbar">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Validation Analysis Report</h2>
+                    <p class="text-slate-500 text-sm">Reviewing model performance across the signature library</p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block leading-tight">Overall Accuracy</span>
+                        <span class="text-emerald-600 font-bold text-lg">98.4%</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Active Case Details -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="h-12 w-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i id="case-icon" class="fa-solid fa-shield-virus"></i>
+                        </div>
+                        <div>
+                            <h3 id="case-title" class="text-xl font-bold text-slate-900">---</h3>
+                            <p id="case-desc" class="text-sm text-slate-500 italic">Select a case to view analysis</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-[2rem] text-white flex flex-col justify-center">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Model Inference</span>
+                    <p class="text-sm font-semibold">Anomaly detected via 7-dimensional hyperplane isolation.</p>
+                </div>
+            </div>
+
+            <!-- Graphs Section -->
+            <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                <div id="static-report-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Charts injected by JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const FEATURES = [
+            { id: 'traffic', label: 'Traffic Volume', unit: 'GB/min', color: '#1e40af', key: 'T' },
+            { id: 'latency', label: 'Latency', unit: 'ms', color: '#ea580c', key: 'L' },
+            { id: 'errors', label: 'Error Rate', unit: 'Ev/min', color: '#dc2626', key: 'E' },
+            { id: 'jitter', label: 'Jitter', unit: 'ms', color: '#7c3aed', key: 'J' },
+            { id: 'throughput', label: 'Throughput', unit: 'Mbps', color: '#059669', key: 'Th' },
+            { id: 'loss', label: 'Packet Loss', unit: '%', color: '#be123c', key: 'Loss' },
+            { id: 'cpu', label: 'CPU Utilization', unit: '%', color: '#0891b2', key: 'CPU' }
+        ];
+
+        const SIGNATURES = {
+            'DDoS Attack': { T: 150, L: 80, E: 15, J: 5, Th: -60, Loss: 6, CPU: 10, icon: 'fa-shield-virus', desc: 'Coordinated flood causing resource exhaustion and high latency.' },
+            'Fiber Cut': { T: -100, L: 200, E: 10, J: 12, Th: -80, Loss: 10, CPU: 5, icon: 'fa-scissors', desc: 'Physical layer failure resulting in total throughput collapse.' },
+            'Probe Attack': { T: 5, L: 10, E: 45, J: 1, Th: 0, Loss: 1, CPU: 2, icon: 'fa-user-secret', desc: 'Systematic vulnerability scanning characterized by high error spikes.' },
+            'Hardware Bottleneck': { T: 80, L: 110, E: 2, J: 4, Th: -45, Loss: 3, CPU: 25, icon: 'fa-server', desc: 'Performance degradation due to hardware resource congestion.' },
+            'Resource Exhaustion': { T: 130, L: 40, E: 5, J: 2, Th: -15, Loss: 2, CPU: 75, icon: 'fa-battery-empty', desc: 'Critical CPU load limiting processing capacity.' },
+            'Routing Loop': { T: 10, L: 220, E: 2, J: 14, Th: 5, Loss: 12, CPU: 2, icon: 'fa-rotate', desc: 'Infinite packet circulation causing extreme latency and loss.' },
+            'VoIP Degradation': { T: 0, L: 160, E: 3, J: 22, Th: -10, Loss: 9, CPU: 4, icon: 'fa-phone-slash', desc: 'Service quality drop marked by high jitter and packet loss.' }
+        };
+
+        let charts = {};
+
+        function init() {
+            const nav = document.getElementById('signature-nav');
+            const grid = document.getElementById('static-report-grid');
+
+            // Setup Navigation
+            Object.keys(SIGNATURES).forEach((name, index) => {
+                const btn = document.createElement('button');
+                btn.className = `nav-btn w-full text-left px-4 py-3 rounded-xl border border-slate-800 bg-slate-800/50 text-xs font-semibold hover:bg-slate-700 transition-all ${index === 0 ? 'active' : ''}`;
+                btn.innerHTML = `<i class="fa-solid ${SIGNATURES[name].icon} mr-2"></i> ${name}`;
+                btn.onclick = () => updateReport(name, btn);
+                nav.appendChild(btn);
+            });
+
+            // Setup Chart Grid
+            FEATURES.forEach(feat => {
+                const container = document.createElement('div');
+                container.className = "p-4 bg-slate-50 rounded-2xl border border-slate-100";
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${feat.label}</span>
+                        <span class="text-[10px] font-mono text-slate-500">${feat.unit}</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="canvas-${feat.id}"></canvas>
+                    </div>
+                `;
+                grid.appendChild(container);
+                setupChart(feat);
+            });
+
+            // Initial Load
+            updateReport(Object.keys(SIGNATURES)[0], nav.firstChild);
+        }
+
+        function setupChart(feat) {
+            const ctx = document.getElementById(`canvas-${feat.id}`).getContext('2d');
+            charts[feat.id] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(100).fill(''),
+                    datasets: [
+                        { data: [], borderColor: feat.color, borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+                        { data: [], type: 'scatter', pointBackgroundColor: '#ef4444', pointRadius: 3, showLine: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+
+        function updateReport(sigName, btn) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const sig = SIGNATURES[sigName];
+            document.getElementById('case-title').innerText = sigName;
+            document.getElementById('case-desc').innerText = sig.desc;
+            document.getElementById('case-icon').className = `fa-solid ${sig.icon}`;
+
+            const dataPoints = 100;
+            const anomalyStart = 40;
+            const anomalyEnd = 50;
+
+            FEATURES.forEach(feat => {
+                const drift = sig[feat.key] || 0;
+                const baseData = Array.from({length: dataPoints}, (_, i) => {
+                    let val = 50 + (Math.random() * 8 - 4);
+                    if (i >= anomalyStart && i <= anomalyEnd) {
+                        if (sigName === 'Fiber Cut' && (feat.key === 'T' || feat.key === 'Th')) {
+                            val = 2 + Math.random();
+                        } else {
+                            val += drift;
+                        }
+                    }
+                    return val;
+                });
+
+                const anomalyPoints = baseData.map((v, i) => (i >= anomalyStart && i <= anomalyEnd) ? v : null);
+
+                const chart = charts[feat.id];
+                chart.data.datasets[0].data = baseData;
+                chart.data.datasets[1].data = anomalyPoints;
+                chart.update();
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
