@@ -11,13 +11,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap');
         body { 
             font-family: 'Urbanist', sans-serif; 
-            background-color: #0b0f1a;
-            color: #e2e8f0;
+            background-color: #f8fafc; /* Changed to light background */
+            color: #1e293b; /* Changed to dark text */
         }
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #ffffff; /* Changed to solid white */
+            border: 1px solid #e2e8f0; /* Changed to light border */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
         .chart-container {
             position: relative;
@@ -25,28 +25,35 @@
             width: 100%;
         }
         .neon-text {
-            text-shadow: 0 0 10px rgba(173, 255, 47, 0.5);
+            /* Modified for light theme readability */
+            text-shadow: 0 0 5px rgba(16, 185, 129, 0.2);
         }
         .signature-btn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        .signature-btn:hover {
+            background-color: #f1f5f9;
         }
         .signature-btn:active {
             transform: scale(0.95);
         }
         .signature-btn.active {
-            background-color: #adff2f;
-            color: #000;
-            border-color: #adff2f;
-            box-shadow: 0 0 15px rgba(173, 255, 47, 0.4);
+            background-color: #10b981; /* Emerald Green */
+            color: #ffffff;
+            border-color: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.05);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(173, 255, 47, 0.2);
+            background: #cbd5e1;
             border-radius: 10px;
         }
     </style>
@@ -57,21 +64,21 @@
         <!-- Header -->
         <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
             <div class="text-center md:text-left">
-                <h1 class="text-4xl font-extrabold tracking-tight text-white neon-text">
-                    <span class="text-[#adff2f]">LIVE</span> 7x7 NETWORK MONITOR
+                <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 neon-text">
+                    <span class="text-emerald-600">LIVE</span> 7x7 NETWORK MONITOR
                 </h1>
-                <p class="text-slate-400 font-medium">Multivariate Anomaly Detection Stream</p>
+                <p class="text-slate-500 font-medium">Multivariate Anomaly Detection Stream</p>
             </div>
             
             <div class="flex items-center gap-6 glass-card px-6 py-3 rounded-2xl">
                 <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full bg-[#adff2f] animate-pulse"></div>
-                    <span class="text-sm font-bold uppercase tracking-widest text-[#adff2f]">Stream Active</span>
+                    <div class="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-sm font-bold uppercase tracking-widest text-emerald-600">Stream Active</span>
                 </div>
-                <div class="h-8 w-px bg-slate-700"></div>
+                <div class="h-8 w-px bg-slate-200"></div>
                 <div>
-                    <span class="text-xs text-slate-500 font-bold block uppercase">Inference Engine</span>
-                    <span class="font-mono text-sm text-white">Isolation Forest</span>
+                    <span class="text-xs text-slate-400 font-bold block uppercase">Inference Engine</span>
+                    <span class="font-mono text-sm text-slate-700">Isolation Forest</span>
                 </div>
             </div>
         </header>
@@ -81,8 +88,8 @@
             <div class="space-y-6">
                 <!-- Simulation Controls -->
                 <div class="glass-card p-6 rounded-3xl">
-                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-[#adff2f]"></i> Signature Injection
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
+                        <i class="fa-solid fa-flask text-emerald-500"></i> Signature Injection
                     </h2>
                     <div class="space-y-2 h-[450px] overflow-y-auto pr-2 custom-scrollbar" id="signature-controls">
                         <!-- Buttons added via JS -->
@@ -91,11 +98,11 @@
 
                 <!-- Alert Feed -->
                 <div class="glass-card p-6 rounded-3xl">
-                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-rose-600">
                         <i class="fa-solid fa-bell text-rose-500"></i> Incident Log
                     </h2>
                     <div id="alert-feed" class="space-y-3 h-48 overflow-y-auto pr-2 custom-scrollbar">
-                        <div class="text-xs text-slate-500 italic">Monitoring telemetry...</div>
+                        <div class="text-xs text-slate-400 italic">Monitoring telemetry...</div>
                     </div>
                 </div>
             </div>
@@ -114,13 +121,13 @@
         const UPDATE_SPEED = 800; // ms
 
         const FEATURE_CONFIG = [
-            { id: 'Traffic_Volume', label: 'Traffic Volume', unit: 'GB/min', color: '#3b82f6', base: 110, dev: 5 },
-            { id: 'Latency_ms', label: 'Latency', unit: 'ms', color: '#f59e0b', base: 55, dev: 5 },
-            { id: 'Error_Rate', label: 'Error Rate', unit: 'Ev/min', color: '#ef4444', base: 1.2, dev: 0.3 },
-            { id: 'Jitter_ms', label: 'Jitter', unit: 'ms', color: '#a855f7', base: 2.5, dev: 0.2 },
-            { id: 'Throughput_Mbps', label: 'Throughput', unit: 'Mbps', color: '#10b981', base: 75, dev: 4 },
-            { id: 'Packet_Loss_Rate', label: 'Packet Loss', unit: '%', color: '#f43f5e', base: 0.6, dev: 0.1 },
-            { id: 'CPU_Utilization_Pct', label: 'CPU Utilization', unit: '%', color: '#06b6d4', base: 35, dev: 3 }
+            { id: 'Traffic_Volume', label: 'Traffic Volume', unit: 'GB/min', color: '#2563eb', base: 110, dev: 5 },
+            { id: 'Latency_ms', label: 'Latency', unit: 'ms', color: '#d97706', base: 55, dev: 5 },
+            { id: 'Error_Rate', label: 'Error Rate', unit: 'Ev/min', color: '#dc2626', base: 1.2, dev: 0.3 },
+            { id: 'Jitter_ms', label: 'Jitter', unit: 'ms', color: '#7c3aed', base: 2.5, dev: 0.2 },
+            { id: 'Throughput_Mbps', label: 'Throughput', unit: 'Mbps', color: '#059669', base: 75, dev: 4 },
+            { id: 'Packet_Loss_Rate', label: 'Packet Loss', unit: '%', color: '#e11d48', base: 0.6, dev: 0.1 },
+            { id: 'CPU_Utilization_Pct', label: 'CPU Utilization', unit: '%', color: '#0891b2', base: 35, dev: 3 }
         ];
 
         const SIGNATURES = {
@@ -169,7 +176,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-xs font-bold uppercase tracking-widest text-slate-400">${feat.label}</span>
-                        <span id="val-${feat.id}" class="font-mono text-sm font-bold text-white">--</span>
+                        <span id="val-${feat.id}" class="font-mono text-sm font-bold text-slate-700">--</span>
                     </div>
                     <div class="chart-container">
                         <canvas id="chart-${feat.id}"></canvas>
@@ -182,7 +189,7 @@
             // Setup buttons
             ['Normal Status', ...Object.keys(SIGNATURES)].forEach(name => {
                 const btn = document.createElement('button');
-                btn.className = `signature-btn w-full text-left px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/50 text-xs font-bold hover:bg-slate-800 transition-all ${name === 'Normal Status' ? 'active' : ''}`;
+                btn.className = `signature-btn w-full text-left px-4 py-3 rounded-xl border text-xs font-bold transition-all ${name === 'Normal Status' ? 'active' : ''}`;
                 btn.innerHTML = `<span>${name}</span>`;
                 btn.onclick = () => setAttack(name, btn);
                 controls.appendChild(btn);
@@ -205,12 +212,14 @@
                         pointRadius: 0,
                         tension: 0.4,
                         fill: true,
-                        backgroundColor: feat.color + '15'
+                        backgroundColor: feat.color + '10' // Subtle fill
                     }, {
                         label: 'Anomaly',
                         data: Array(WINDOW_SIZE).fill(null),
                         type: 'scatter',
                         pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
                         pointRadius: 6,
                         showLine: false
                     }]
@@ -222,8 +231,8 @@
                     scales: {
                         x: { display: false },
                         y: { 
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#64748b', font: { size: 10 } }
+                            grid: { color: '#f1f5f9' }, // Light grid lines
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
                         }
                     },
                     animation: false
@@ -248,10 +257,11 @@
         function logAlert(msg, type = 'error') {
             const feed = document.getElementById('alert-feed');
             const alert = document.createElement('div');
-            const color = type === 'error' ? 'text-rose-400 border-rose-900/50 bg-rose-900/10' : 'text-amber-400 border-amber-900/50 bg-amber-900/10';
+            // Updated alert colors for light theme
+            const color = type === 'error' ? 'text-rose-600 border-rose-100 bg-rose-50' : 'text-amber-600 border-amber-100 bg-amber-50';
             
             alert.className = `p-3 rounded-xl border text-[10px] font-bold uppercase tracking-tight ${color} animate-pulse`;
-            alert.innerHTML = `<span class="opacity-50 text-slate-500 mr-2">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            alert.innerHTML = `<span class="opacity-50 text-slate-400 mr-2">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
             
             feed.prepend(alert);
             if (feed.children.length > 15) feed.removeChild(feed.lastChild);
